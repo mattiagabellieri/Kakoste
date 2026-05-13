@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:background="#1D4682"
         android:orientation="vertical"
         android:padding="32dp">
 
@@ -29,9 +30,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="8dp"
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="@font/audiowide"
             android:text="Omnitext"
-            android:textColor="#1A1A1A"
+            android:textColor="#FFFFFF"
             android:textSize="34sp" />
 
         <TextView
