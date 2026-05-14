@@ -5,66 +5,73 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
     app:cardCornerRadius="24dp"
-    app:cardElevation="6dp"
+    app:cardElevation="4dp"
     app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:background="#FFFFFF"> <com.google.android.material.card.MaterialCardView
-        android:id="@+id/avatarContainer"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        app:cardBackgroundColor="#1A3B6D"
-        app:cardCornerRadius="25dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:background="#FFFFFF">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="A"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
-    </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/avatarContainer"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardBackgroundColor="#1A3B6D"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="A"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvChatName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            tools:text="Mario Rossi"
             android:textColor="#1A3B6D"
             android:textSize="18sp"
             android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvTime"
             app:layout_constraintStart_toEndOf="@id/avatarContainer"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/tvTime" />
+            tools:text="Mario Rossi" />
 
         <TextView
             android:id="@+id/tvLastMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            tools:text="Ehi, ci vediamo dopo?"
             android:textColor="#8E8E93"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="@id/tvChatName"
             app:layout_constraintStart_toStartOf="@id/tvChatName"
             app:layout_constraintTop_toBottomOf="@id/tvChatName"
-            app:layout_constraintEnd_toEndOf="@id/tvChatName" />
+            tools:text="Ehi, ci vediamo dopo?" />
 
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="14:30"
             android:textColor="#AEAEB2"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvChatName" />
+            app:layout_constraintTop_toTopOf="@id/tvChatName"
+            tools:text="14:30" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

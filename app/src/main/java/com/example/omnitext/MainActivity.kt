@@ -24,6 +24,8 @@ class MainActivity : AppCompatActivity() {
 
         val etUsername = findViewById<TextInputEditText>(R.id.etUsername)
         val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
+
+        // Uso MaterialButton per entrambi per evitare l'errore di "cast" che avevi
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val btnSignUp = findViewById<MaterialButton>(R.id.btnSignUp)
 
@@ -47,25 +49,36 @@ class MainActivity : AppCompatActivity() {
                     if (documents.isEmpty) {
                         Toast.makeText(this, "Utente non trovato", Toast.LENGTH_SHORT).show()
                         btnLogin.isEnabled = true
+                        btnLogin.text = "ACCEDI"
                         return@addOnSuccessListener
                     }
 
-                    // 2. Trovato lo username, recuperiamo il telefono per fare il login
+                    // 2. Trovato lo username, recuperiamo il telefono
                     val phone = documents.documents[0].getString("Telefono")
                     val fakeEmail = "$phone@omnitext.com"
 
-                    // 3. Eseguiamo il login vero e proprio con Authenticator
+                    // 3. Login con Firebase Authentication
                     auth.signInWithEmailAndPassword(fakeEmail, password)
                         .addOnSuccessListener {
                             Toast.makeText(this, "Accesso eseguito!", Toast.LENGTH_SHORT).show()
-                            // Vai alla Homepage
-                            // startActivity(Intent(this, HomeActivity::class.java))
+
+                            // --- AZIONE: PASSA ALLA HOMEPAGE ---
+                            val intent = Intent(this, ChatHomepageActivity::class.java)
+                            startActivity(intent)
+
+                            // Chiudiamo la MainActivity così non si torna al login col tasto indietro
+                            finish()
                         }
                         .addOnFailureListener {
                             btnLogin.isEnabled = true
                             btnLogin.text = "ACCEDI"
                             Toast.makeText(this, "Password errata", Toast.LENGTH_SHORT).show()
                         }
+                }
+                .addOnFailureListener {
+                    btnLogin.isEnabled = true
+                    btnLogin.text = "ACCEDI"
+                    Toast.makeText(this, "Errore di connessione", Toast.LENGTH_SHORT).show()
                 }
         }
 
