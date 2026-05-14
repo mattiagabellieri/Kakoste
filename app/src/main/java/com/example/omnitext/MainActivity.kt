@@ -1,5 +1,6 @@
 package com.example.omnitext
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Toast
@@ -10,39 +11,30 @@ import com.google.android.material.textfield.TextInputLayout
 
 class MainActivity : AppCompatActivity() {
 
-    // ── View references ────────────────────────────────────────────────────────
     private lateinit var etUsername: TextInputEditText
     private lateinit var etPassword: TextInputEditText
     private lateinit var btnLogin: MaterialButton
     private lateinit var btnSignUp: MaterialButton
-
     private lateinit var tilUsername: TextInputLayout
     private lateinit var tilPassword: TextInputLayout
 
-    // ── Lifecycle ──────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         bindViews()
         setupListeners()
     }
 
-    // ── Binding ────────────────────────────────────────────────────────────────
     private fun bindViews() {
         etUsername = findViewById(R.id.etUsername)
         etPassword = findViewById(R.id.etPassword)
         btnLogin   = findViewById(R.id.btnLogin)
         btnSignUp  = findViewById(R.id.btnSignUp)
-
-        // TextInputEditText → FrameLayout → TextInputLayout (parent.parent)
         tilUsername = etUsername.parent.parent as TextInputLayout
         tilPassword = etPassword.parent.parent as TextInputLayout
     }
 
-    // ── Listeners ──────────────────────────────────────────────────────────────
     private fun setupListeners() {
-
         btnLogin.setOnClickListener {
             if (validateInputs()) {
                 performLogin(
@@ -52,9 +44,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Naviga alla SignUpActivity
         btnSignUp.setOnClickListener {
-            Toast.makeText(this, "Registrazione non ancora disponibile", Toast.LENGTH_SHORT).show()
-            // TODO: startActivity(Intent(this, SignUpActivity::class.java))
+            startActivity(Intent(this, signup_screen_activity::class.java))
         }
 
         etUsername.setOnFocusChangeListener { _, hasFocus ->
@@ -65,10 +57,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ── Validation ─────────────────────────────────────────────────────────────
     private fun validateInputs(): Boolean {
         var isValid = true
-
         val username = etUsername.text.toString().trim()
         val password = etPassword.text.toString()
 
@@ -92,16 +82,13 @@ class MainActivity : AppCompatActivity() {
         return isValid
     }
 
-    // ── Login logic ────────────────────────────────────────────────────────────
     private fun performLogin(username: String, password: String) {
-        // TODO: sostituire con chiamata reale alle API (es. Retrofit / Firebase)
         btnLogin.isEnabled = false
         btnLogin.text = "Accesso in corso\u2026"
 
         android.os.Handler(mainLooper).postDelayed({
             btnLogin.isEnabled = true
             btnLogin.text = "ACCEDI"
-
             if (username == "admin" && password == "123456") {
                 onLoginSuccess()
             } else {
@@ -112,11 +99,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLoginSuccess() {
         Toast.makeText(this, "Benvenuto!", Toast.LENGTH_SHORT).show()
-        // TODO: quando crei HomeActivity, decommentare:
-        // val intent = Intent(this, HomeActivity::class.java)
+        // TODO: val intent = Intent(this, HomeActivity::class.java)
         // intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        // startActivity(intent)
-        // finish()
+        // startActivity(intent); finish()
     }
 
     private fun onLoginFailure() {
