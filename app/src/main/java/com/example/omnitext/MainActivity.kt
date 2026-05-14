@@ -30,11 +30,14 @@ class MainActivity : AppCompatActivity() {
         etPassword = findViewById(R.id.etPassword)
         btnLogin   = findViewById(R.id.btnLogin)
         btnSignUp  = findViewById(R.id.btnSignUp)
+
+        // Mantengo il tuo sistema parent.parent (assicurati che la gerarchia XML non cambi)
         tilUsername = etUsername.parent.parent as TextInputLayout
         tilPassword = etPassword.parent.parent as TextInputLayout
     }
 
     private fun setupListeners() {
+        // Logica per il tasto ACCEDI
         btnLogin.setOnClickListener {
             if (validateInputs()) {
                 performLogin(
@@ -44,9 +47,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Naviga alla SignUpActivity
+        // --- CAMBIO SCHERMATA AGGIUNTO QUI ---
         btnSignUp.setOnClickListener {
-            startActivity(Intent(this, signup_screen_activity::class.java))
+            val intent = Intent(this, signup_screen_activity::class.java)
+            startActivity(intent)
         }
 
         etUsername.setOnFocusChangeListener { _, hasFocus ->
@@ -99,9 +103,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLoginSuccess() {
         Toast.makeText(this, "Benvenuto!", Toast.LENGTH_SHORT).show()
-        // TODO: val intent = Intent(this, HomeActivity::class.java)
-        // intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        // startActivity(intent); finish()
     }
 
     private fun onLoginFailure() {
