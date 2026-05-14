@@ -42,7 +42,7 @@
             android:layout_gravity="center"
             android:layout_marginBottom="32dp"
             android:text="Connettiti con il mondo"
-            android:textColor="#757575"
+            android:textColor="#FFFFFF"
             android:textSize="16sp" />
 
         <com.google.android.material.card.MaterialCardView
@@ -116,7 +116,7 @@
             android:layout_marginTop="16dp"
             android:text="Non hai un account? Registrati"
             android:textAllCaps="false"
-            android:textColor="#6200EE" />
+            android:textColor="#FF005C" />
 
     </LinearLayout>
 </RelativeLayout>
