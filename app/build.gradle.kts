@@ -1,8 +1,7 @@
 plugins {
-    // id("com.android.application")
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.gms.google-services")
+    id("com.google.gms.google-services") // Assicurati che questa riga ci sia
 }
 
 android {
@@ -38,15 +37,20 @@ android {
 }
 
 dependencies {
+    // Sistema Firebase Unificato
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    // Altre librerie standard
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("com.google.firebase:firebase-analytics")
 }
