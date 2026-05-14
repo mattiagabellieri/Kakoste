@@ -2,112 +2,75 @@ package com.example.omnitext
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var etUsername: TextInputEditText
-    private lateinit var etPassword: TextInputEditText
-    private lateinit var btnLogin: MaterialButton
-    private lateinit var btnSignUp: MaterialButton
-    private lateinit var tilUsername: TextInputLayout
-    private lateinit var tilPassword: TextInputLayout
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        bindViews()
-        setupListeners()
-    }
 
-    private fun bindViews() {
-        etUsername = findViewById(R.id.etUsername)
-        etPassword = findViewById(R.id.etPassword)
-        btnLogin   = findViewById(R.id.btnLogin)
-        btnSignUp  = findViewById(R.id.btnSignUp)
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
-        // Mantengo il tuo sistema parent.parent (assicurati che la gerarchia XML non cambi)
-        tilUsername = etUsername.parent.parent as TextInputLayout
-        tilPassword = etPassword.parent.parent as TextInputLayout
-    }
+        val etUsername = findViewById<TextInputEditText>(R.id.etUsername)
+        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
+        val btnLogin = findViewById<Button>(R.id.btnLogin)
+        val btnSignUp = findViewById<MaterialButton>(R.id.btnSignUp)
 
-    private fun setupListeners() {
-        // Logica per il tasto ACCEDI
         btnLogin.setOnClickListener {
-            if (validateInputs()) {
-                performLogin(
-                    username = etUsername.text.toString().trim(),
-                    password = etPassword.text.toString()
-                )
+            val usernameInput = etUsername.text.toString().trim()
+            val password = etPassword.text.toString()
+
+            if (usernameInput.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Inserisci i dati", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            btnLogin.isEnabled = false
+            btnLogin.text = "Verifica in corso..."
+
+            // 1. Cerchiamo il numero di telefono associato allo username su Firestore
+            db.collection("Utenti")
+                .whereEqualTo("Username", usernameInput)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if (documents.isEmpty) {
+                        Toast.makeText(this, "Utente non trovato", Toast.LENGTH_SHORT).show()
+                        btnLogin.isEnabled = true
+                        return@addOnSuccessListener
+                    }
+
+                    // 2. Trovato lo username, recuperiamo il telefono per fare il login
+                    val phone = documents.documents[0].getString("Telefono")
+                    val fakeEmail = "$phone@omnitext.com"
+
+                    // 3. Eseguiamo il login vero e proprio con Authenticator
+                    auth.signInWithEmailAndPassword(fakeEmail, password)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Accesso eseguito!", Toast.LENGTH_SHORT).show()
+                            // Vai alla Homepage
+                            // startActivity(Intent(this, HomeActivity::class.java))
+                        }
+                        .addOnFailureListener {
+                            btnLogin.isEnabled = true
+                            btnLogin.text = "ACCEDI"
+                            Toast.makeText(this, "Password errata", Toast.LENGTH_SHORT).show()
+                        }
+                }
         }
 
-        // --- CAMBIO SCHERMATA AGGIUNTO QUI ---
         btnSignUp.setOnClickListener {
-            val intent = Intent(this, signup_screen_activity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, signup_screen_activity::class.java))
         }
-
-        etUsername.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) tilUsername.error = null
-        }
-        etPassword.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) tilPassword.error = null
-        }
-    }
-
-    private fun validateInputs(): Boolean {
-        var isValid = true
-        val username = etUsername.text.toString().trim()
-        val password = etPassword.text.toString()
-
-        if (TextUtils.isEmpty(username)) {
-            tilUsername.error = "Inserisci il tuo username"
-            isValid = false
-        } else {
-            tilUsername.error = null
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            tilPassword.error = "Inserisci la tua password"
-            isValid = false
-        } else if (password.length < 6) {
-            tilPassword.error = "La password deve contenere almeno 6 caratteri"
-            isValid = false
-        } else {
-            tilPassword.error = null
-        }
-
-        return isValid
-    }
-
-    private fun performLogin(username: String, password: String) {
-        btnLogin.isEnabled = false
-        btnLogin.text = "Accesso in corso\u2026"
-
-        android.os.Handler(mainLooper).postDelayed({
-            btnLogin.isEnabled = true
-            btnLogin.text = "ACCEDI"
-            if (username == "admin" && password == "123456") {
-                onLoginSuccess()
-            } else {
-                onLoginFailure()
-            }
-        }, 1500)
-    }
-
-    private fun onLoginSuccess() {
-        Toast.makeText(this, "Benvenuto!", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun onLoginFailure() {
-        tilPassword.error = "Username o password non corretti"
-        etPassword.text?.clear()
-        etPassword.requestFocus()
     }
 }
