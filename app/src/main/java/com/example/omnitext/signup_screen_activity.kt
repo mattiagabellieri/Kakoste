@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.omnitext.R // IMPORTANTE: questo collega l'XML al Codice
 
 class signup_screen_activity : AppCompatActivity() {
 
@@ -17,6 +18,7 @@ class signup_screen_activity : AppCompatActivity() {
 
         db = FirebaseFirestore.getInstance()
 
+        // Se questi rimangono rossi, l'errore è nell'XML (punto 1)
         val etUsername = findViewById<EditText>(R.id.etNewUsername)
         val etPhone = findViewById<EditText>(R.id.etPhone)
         val etPassword = findViewById<EditText>(R.id.etNewPassword)
@@ -42,14 +44,10 @@ class signup_screen_activity : AppCompatActivity() {
             btnSignUp.isEnabled = false
             btnSignUp.text = "Caricamento..."
 
-            // 1. Recuperiamo gli utenti per generare l'ID progressivo
             db.collection("Utenti").get().addOnSuccessListener { snapshot ->
                 val idQuattroCifre = String.format("%04d", snapshot.size() + 1)
+                val nomeDoc = "${username.replace(" ", "_")}_$idQuattroCifre"
 
-                // 2. Definiamo il nome del documento (ID della riga su Firebase)
-                val nomeDocumento = "${username.replace(" ", "_")}_$idQuattroCifre"
-
-                // 3. Prepariamo solo i campi necessari (senza Nome_Documento)
                 val userMap = hashMapOf(
                     "Username" to username,
                     "Telefono" to phone,
@@ -57,20 +55,18 @@ class signup_screen_activity : AppCompatActivity() {
                     "ID_Personale" to idQuattroCifre
                 )
 
-                // 4. Salviamo il documento usando nomeDocumento come identificatore
-                db.collection("Utenti").document(nomeDocumento).set(userMap)
+                db.collection("Utenti").document(nomeDoc).set(userMap)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Registrato: $nomeDocumento", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Registrato: $nomeDoc", Toast.LENGTH_LONG).show()
                         finish()
                     }
                     .addOnFailureListener { e ->
                         btnSignUp.isEnabled = true
                         btnSignUp.text = "REGISTRATI"
-                        Toast.makeText(this, "Errore: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }.addOnFailureListener {
                 btnSignUp.isEnabled = true
-                btnSignUp.text = "REGISTRATI"
                 Toast.makeText(this, "Errore database", Toast.LENGTH_SHORT).show()
             }
         }
