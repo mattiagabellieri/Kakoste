@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="#1A3B6D"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
@@ -20,7 +21,8 @@
             android:text="Mario Rossi"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_gravity="start" />
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -29,6 +31,8 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:padding="8dp"
+        android:contentDescription="Lista dei messaggi"
+        tools:ignore="SpeakableTextPresentCheck"
         app:layout_constraintBottom_toTopOf="@+id/inputCard"
         app:layout_constraintTop_toBottomOf="@id/chatToolbar"
         tools:listitem="@layout/item_message" />
@@ -60,6 +64,9 @@
                 android:layout_weight="1"
                 android:background="@null"
                 android:hint="Scrivi un messaggio..."
+                android:inputType="textMultiLine|textCapSentences"
+                android:importantForAutofill="no"
+                tools:ignore="TextContrastCheck,VisualLintTextFieldSize"
                 android:maxLines="4"
                 android:minHeight="48dp"
                 android:padding="10dp"
@@ -67,8 +74,8 @@
 
             <ImageButton
                 android:id="@+id/btnSendMessage"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Invia"
                 app:srcCompat="@android:drawable/ic_menu_send"

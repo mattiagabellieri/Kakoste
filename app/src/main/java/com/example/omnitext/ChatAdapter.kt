@@ -6,22 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+// Questo import esplicito dice ad Android Studio esattamente dove trovare i tuoi XML
+import com.example.omnitext.R
 
 class ChatAdapter(private val chatList: List<ChatModel>) :
     RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
 
     class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        // Colleghiamo i componenti di item_chat.xml
-        val tvName: TextView = view.findViewById(R.id.tvChatName)
-        val tvLastMsg: TextView = view.findViewById(R.id.tvLastMessage)
-
-        // Qui risolviamo l'errore dell'avatar:
-        // Cerchiamo il TextView direttamente usando il suo ID globale
-        val tvAvatarLetter: TextView = view.findViewById(R.id.textView)
+        val tvName: TextView = view.findViewById<TextView>(R.id.tvChatName)
+        val tvLastMsg: TextView = view.findViewById<TextView>(R.id.tvLastMessage)
+        val tvAvatarLetter: TextView = view.findViewById<TextView>(R.id.textView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-        // Qui carichiamo il layout item_chat.xml
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_chat, parent, false)
         return ChatViewHolder(view)
     }
@@ -31,16 +28,14 @@ class ChatAdapter(private val chatList: List<ChatModel>) :
 
         holder.tvName.text = chat.otherUserName
         holder.tvLastMsg.text = chat.lastMessage
-
-        // Prende la prima lettera del nome
         holder.tvAvatarLetter.text = chat.otherUserName.take(1).uppercase()
 
-        // Click sulla riga per aprire la chat singola
-        holder.itemView.setOnClickListener {
-            val intent = Intent(it.context, SingleChatActivity::class.java)
+        holder.itemView.setOnClickListener { contextView ->
+            val context = contextView.context
+            val intent = Intent(context, SingleChatActivity::class.java)
             intent.putExtra("CHAT_ID", chat.chatRoomId)
             intent.putExtra("OTHER_USER_NAME", chat.otherUserName)
-            it.context.startActivity(intent)
+            context.startActivity(intent)
         }
     }
 
