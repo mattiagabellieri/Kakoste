@@ -31,29 +31,28 @@
             android:layout_gravity="center"
             android:layout_marginBottom="24dp"
             android:text="Unisciti alla community Omnitext"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
+            android:textColor="#FFD400"
+            android:textSize="16sp"
+            android:textStyle="italic" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="4dp"
-            app:cardUseCompatPadding="true">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="#FFFFFF"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Username"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
+                    android:hint="Nome Utente">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etNewUsername"
@@ -62,17 +61,12 @@
                         android:inputType="textPersonName" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Numero di Telefono"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
+                    android:layout_marginTop="12dp"
+                    android:hint="Numero di Telefono">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPhone"
@@ -81,18 +75,12 @@
                         android:inputType="phone" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Password"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:passwordToggleEnabled="true">
+                    android:layout_marginTop="12dp"
+                    android:hint="Password">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etNewPassword"
@@ -101,18 +89,12 @@
                         android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Conferma Password"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:passwordToggleEnabled="true">
+                    android:layout_marginTop="12dp"
+                    android:hint="Conferma Password">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etConfirmPassword"
