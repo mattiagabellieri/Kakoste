@@ -30,12 +30,19 @@ class SingleChatActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_single_chat)
 
-        // Margini Edge-to-Edge applicati alla vista principale
-        val mainView = findViewById<android.view.View>(android.R.id.content)
+        // VISTA PRINCIPALE PER IL CONTROLLO DELLA TASTIERA
+        val mainView = findViewById<android.view.View>(R.id.mainChatLayout)
+
+        // CORREZIONE EDGE-TO-EDGE + COMPORTAMENTO TASTIERA (IME)
         ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            findViewById<androidx.appcompat.widget.Toolbar>(R.id.chatToolbar)
-                .setPadding(0, systemBars.top, 0, 0)
+            val imeBars = insets.getInsets(WindowInsetsCompat.Type.ime()) // Gestisce la tastiera
+
+            // Se la tastiera è aperta usa il suo ingombro, altrimenti usa la barra di sistema in basso
+            val bottomPadding = if (imeBars.bottom > 0) imeBars.bottom else systemBars.bottom
+
+            // Impostiamo il padding dinamico alla vista principale
+            v.setPadding(0, systemBars.top, 0, bottomPadding)
             insets
         }
 
@@ -50,25 +57,35 @@ class SingleChatActivity : AppCompatActivity() {
         val btnSendMessage = findViewById<ImageButton>(R.id.btnSendMessage)
         val rvMessages = findViewById<RecyclerView>(R.id.rvMessages)
 
-        // AGGIUNTA: Configura il tasto "Indietro" nella Toolbar
+        // Configura il tasto "Indietro" nella Toolbar
         setSupportActionBar(chatToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(false) // Nasconde il titolo di default dell'app
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // Quando premi la freccia indietro, chiude questa Activity e torna alla Home
         chatToolbar.setNavigationOnClickListener {
             finish()
         }
 
-        // Impostiamo il nome dell'utente in cima alla Toolbar
         tvChatUserTitle.text = otherUserName
 
-        // 3. Configura la RecyclerView dei messaggi e collega l'Adapter funzionante
+        // 3. Configura la RecyclerView dei messaggi
         messageAdapter = MessageAdapter(messageList)
-        rvMessages.layoutManager = LinearLayoutManager(this).apply {
-            stackFromEnd = true
+        val layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = true // Mantiene i messaggi ancorati al fondo
         }
+        rvMessages.layoutManager = layoutManager
         rvMessages.adapter = messageAdapter
+
+        // SCROLL AUTOMATICO QUANDO IL LAYOUT SI STRINGE (Apertura della tastiera)
+        rvMessages.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+            if (bottom < oldBottom) {
+                if (messageList.isNotEmpty()) {
+                    rvMessages.postDelayed({
+                        rvMessages.smoothScrollToPosition(messageList.size - 1)
+                    }, 100)
+                }
+            }
+        }
 
         // 4. Gestione del tasto INVIA messaggio
         btnSendMessage.setOnClickListener {
