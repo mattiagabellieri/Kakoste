@@ -22,7 +22,7 @@ class AddContactActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_add_contact)
 
-        // Gestione margini di sistema (evita il crash dell'ID 'main')
+        // Gestione margini di sistema
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -32,40 +32,45 @@ class AddContactActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
+        // AGGIUNTA: Configura la Toolbar e attiva la freccia indietro
+        val addContactToolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.addContactToolbar)
+        setSupportActionBar(addContactToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false) // Nasconde il titolo dell'app
+
+        // Al click sulla freccia indietro, chiude l'attività e torna alla Home
+        addContactToolbar.setNavigationOnClickListener {
+            finish()
+        }
+
         val etPhone = findViewById<TextInputEditText>(R.id.etPhoneToAdd)
         val btnAdd = findViewById<MaterialButton>(R.id.btnAddContact)
 
         btnAdd.setOnClickListener {
             val phoneInput = etPhone.text.toString().trim()
-
-            if (phoneInput.isEmpty()) {
-                Toast.makeText(this, "Inserisci un numero", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if (phoneInput.isNotEmpty()) {
+                cercaContattoEAvviaChat(phoneInput)
+            } else {
+                Toast.makeText(this, "Inserisci un numero valido", Toast.LENGTH_SHORT).show()
             }
-
-            cercaUtente(phoneInput)
         }
     }
 
-    private fun cercaUtente(telefono: String) {
+    private fun cercaContattoEAvviaChat(phoneInput: String) {
         val mioUid = auth.currentUser?.uid ?: return
 
-        // 1. Cerchiamo l'utente con quel numero nella collezione "Utenti"
-        db.collection("Utenti")
-            .whereEqualTo("Telefono", telefono)
+        db.collection("Users")
+            .whereEqualTo("telefono", phoneInput)
             .get()
-            .addOnSuccessListener { documents ->
-                if (documents.isEmpty) {
-                    Toast.makeText(this, "Utente non registrato su Omnitext", Toast.LENGTH_SHORT).show()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.isEmpty) {
+                    Toast.makeText(this, "Contatto non trovato", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
-                // 2. Utente trovato! Prendiamo il suo UID
-                val altroUid = documents.documents[0].id
-
-                // Evitiamo di auto-aggiungerci
-                if (mioUid == altroUid) {
-                    Toast.makeText(this, "Non puoi chattare con te stesso!", Toast.LENGTH_SHORT).show()
+                val altroUid = snapshot.documents[0].id
+                if (altroUid == mioUid) {
+                    Toast.makeText(this, "Non puoi aggiungere te stesso", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
@@ -77,13 +82,12 @@ class AddContactActivity : AppCompatActivity() {
     }
 
     private fun creaStanzaChat(mioUid: String, altroUid: String) {
-        // Generiamo un ID unico per la stanza (es: uid1_uid2 ordinati alfabeticamente)
         val list = listOf(mioUid, altroUid).sorted()
-        val chatRoomId = "${list[0]}, ${list[1]}" // Usiamo la virgola come nel tuo database
+        val chatRoomId = "${list[0]}, ${list[1]}"
 
         val chatData = hashMapOf(
-            "Partecipanti" to list, // Lista dei due UID
-            "messagges" to hashMapOf( // Nota: ho usato 'messagges' come nel tuo DB
+            "Partecipanti" to list,
+            "messagges" to hashMapOf(
                 "testo" to "Inizia a chattare!",
                 "mittenteID" to "",
                 "ora" to 0,
@@ -94,12 +98,11 @@ class AddContactActivity : AppCompatActivity() {
             )
         )
 
-        // 3. Salviamo la stanza su Firestore nella collezione "ChatRooms"
         db.collection("ChatRooms").document(chatRoomId)
             .set(chatData)
             .addOnSuccessListener {
                 Toast.makeText(this, "Chat avviata!", Toast.LENGTH_SHORT).show()
-                finish() // Torna alla Homepage
+                finish()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Errore nel creare la chat", Toast.LENGTH_SHORT).show()

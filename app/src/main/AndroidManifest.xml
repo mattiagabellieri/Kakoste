@@ -24,5 +24,7 @@
         <activity android:name=".AddContactActivity" android:exported="false" />
         <activity android:name=".SingleChatActivity" android:exported="false" />
 
+        <activity android:name=".AccountDetail" android:exported="false" />
+
     </application>
 </manifest>

@@ -2,6 +2,7 @@ package com.example.omnitext
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,6 +25,7 @@ class ChatHomepageActivity : AppCompatActivity() {
 
         val rvChatList = findViewById<RecyclerView>(R.id.rvChatList)
         val fabNewChat = findViewById<FloatingActionButton>(R.id.fabNewChat)
+        val ibSettings = findViewById<ImageButton>(R.id.ibSettings)
 
         // Configura RecyclerView
         rvChatList.layoutManager = LinearLayoutManager(this)
@@ -34,13 +36,17 @@ class ChatHomepageActivity : AppCompatActivity() {
             startActivity(Intent(this, AddContactActivity::class.java))
         }
 
+        // AGGIUNTO: Click per andare alla modifica profilo
+        ibSettings.setOnClickListener {
+            startActivity(Intent(this, AccountDetail::class.java))
+        }
+
         caricaChatDalloUsername()
     }
 
     private fun caricaChatDalloUsername() {
         val mioUid = auth.currentUser?.uid ?: return
 
-        // Ascolta in tempo reale le chat dove l'utente è partecipante
         db.collection("ChatRooms")
             .whereArrayContains("Partecipanti", mioUid)
             .addSnapshotListener { value, error ->
@@ -51,11 +57,9 @@ class ChatHomepageActivity : AppCompatActivity() {
                     val partecipanti = doc.get("Partecipanti") as? List<String>
                     val altroUid = partecipanti?.find { it != mioUid } ?: ""
 
-                    // Recuperiamo l'ultimo messaggio dal campo 'messagges' (con due 's' come nel tuo DB)
                     val lastMsgMap = doc.get("messagges") as? Map<String, Any>
                     val testoLastMsg = lastMsgMap?.get("testo")?.toString() ?: "Nessun messaggio"
 
-                    // Qui dovremmo recuperare il nome dell'altro utente dalla collezione "Utenti"
                     db.collection("Utenti").document(altroUid).get().addOnSuccessListener { uDoc ->
                         val nome = uDoc.getString("Username") ?: "Utente"
                         chatList.add(ChatModel(doc.id, testoLastMsg, altroUid, nome))
