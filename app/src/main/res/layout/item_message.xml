@@ -5,6 +5,18 @@
     android:orientation="vertical"
     android:padding="6dp">
 
+    <TextView
+        android:id="@+id/tvMessageDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:textColor="#B3FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/layoutReceived"
         android:layout_width="wrap_content"
@@ -14,12 +26,23 @@
         android:background="@drawable/bg_message_received"
         android:orientation="vertical"
         android:padding="12dp"
-        android:visibility="gone"> <TextView
-        android:id="@+id/tvReceivedMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#1A3B6D"
-        android:textSize="16sp" />
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvReceivedMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#1A3B6D"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvReceivedTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="2dp"
+            android:textColor="#601A3B6D"
+            android:textSize="11sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -32,12 +55,23 @@
         android:background="@drawable/bg_message_sent"
         android:orientation="vertical"
         android:padding="12dp"
-        android:visibility="gone"> <TextView
-        android:id="@+id/tvSentMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#1A3B6D"
-        android:textSize="16sp" />
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvSentMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#1A3B6D"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvSentTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="2dp"
+            android:textColor="#601A3B6D"
+            android:textSize="11sp" />
     </LinearLayout>
 
 </LinearLayout>
