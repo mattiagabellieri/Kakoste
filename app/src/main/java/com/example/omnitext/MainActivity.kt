@@ -3,87 +3,29 @@ package com.example.omnitext
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
+        // Colleghiamo il tasto ACCEDI dall'XML
+        val btnVaiALogin = findViewById<Button>(R.id.btnVaiALogin)
+        // Colleghiamo il tasto REGISTRATI dall'XML (diventato un Button standard)
+        val btnSignUp = findViewById<Button>(R.id.btnSignUp)
 
-        val etUsername = findViewById<TextInputEditText>(R.id.etUsername)
-        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
-
-        // Uso MaterialButton per entrambi per evitare l'errore di "cast" che avevi
-        val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val btnSignUp = findViewById<MaterialButton>(R.id.btnSignUp)
-
-        btnLogin.setOnClickListener {
-            val usernameInput = etUsername.text.toString().trim()
-            val password = etPassword.text.toString()
-
-            if (usernameInput.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Inserisci i dati", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            btnLogin.isEnabled = false
-            btnLogin.text = "Verifica in corso..."
-
-            // 1. Cerchiamo il numero di telefono associato allo username su Firestore
-            db.collection("Utenti")
-                .whereEqualTo("Username", usernameInput)
-                .get()
-                .addOnSuccessListener { documents ->
-                    if (documents.isEmpty) {
-                        Toast.makeText(this, "Utente non trovato", Toast.LENGTH_SHORT).show()
-                        btnLogin.isEnabled = true
-                        btnLogin.text = "ACCEDI"
-                        return@addOnSuccessListener
-                    }
-
-                    // 2. Trovato lo username, recuperiamo il telefono
-                    val phone = documents.documents[0].getString("Telefono")
-                    val fakeEmail = "$phone@omnitext.com"
-
-                    // 3. Login con Firebase Authentication
-                    auth.signInWithEmailAndPassword(fakeEmail, password)
-                        .addOnSuccessListener {
-                            Toast.makeText(this, "Accesso eseguito!", Toast.LENGTH_SHORT).show()
-
-                            // --- AZIONE: PASSA ALLA HOMEPAGE ---
-                            val intent = Intent(this, ChatHomepageActivity::class.java)
-                            startActivity(intent)
-
-                            // Chiudiamo la MainActivity così non si torna al login col tasto indietro
-                            finish()
-                        }
-                        .addOnFailureListener {
-                            btnLogin.isEnabled = true
-                            btnLogin.text = "ACCEDI"
-                            Toast.makeText(this, "Password errata", Toast.LENGTH_SHORT).show()
-                        }
-                }
-                .addOnFailureListener {
-                    btnLogin.isEnabled = true
-                    btnLogin.text = "ACCEDI"
-                    Toast.makeText(this, "Errore di connessione", Toast.LENGTH_SHORT).show()
-                }
+        // Quando clicchi ACCEDI, ti porta alla LoginScreenActivity
+        btnVaiALogin.setOnClickListener {
+            val intent = Intent(this, LoginScreenActivity::class.java)
+            startActivity(intent)
         }
 
+        // Quando clicchi REGISTRATI, ti porta alla signup_screen_activity
         btnSignUp.setOnClickListener {
-            startActivity(Intent(this, signup_screen_activity::class.java))
+            val intent = Intent(this, signup_screen_activity::class.java)
+            startActivity(intent)
         }
     }
 }

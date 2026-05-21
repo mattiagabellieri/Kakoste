@@ -1,5 +1,6 @@
 package com.example.omnitext
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -21,11 +22,14 @@ class signup_screen_activity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
+        // INIZIALIZZAZIONE DEI COMPONENTI DALL'XML
         val etUsername = findViewById<EditText>(R.id.etNewUsername)
         val etPhone = findViewById<EditText>(R.id.etPhone)
         val etPassword = findViewById<EditText>(R.id.etNewPassword)
         val etConfPassword = findViewById<EditText>(R.id.etConfirmPassword)
         val btnSignUp = findViewById<Button>(R.id.btnDoSignUp)
+
+        // CORREZIONE: Inizializziamo il pulsante di ritorno che causava l'errore
         val btnBackToLogin = findViewById<MaterialButton>(R.id.btnBackToLogin)
 
         // AZIONE SUL PULSANTE "REGISTRATI"
@@ -35,6 +39,7 @@ class signup_screen_activity : AppCompatActivity() {
             val password = etPassword.text.toString().trim()
             val confPassword = etConfPassword.text.toString().trim()
 
+            // Validazione dei campi obbligatori
             if (username.isEmpty() || phone.isEmpty() || password.isEmpty() || confPassword.isEmpty()) {
                 Toast.makeText(this, "Compila tutti i campi richiesti", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -83,9 +88,11 @@ class signup_screen_activity : AppCompatActivity() {
                 }
         }
 
-        // AGGANCIO DEL TASTO PER TORNARE ALLA SCHERMATA MAIN (LOGIN)
+        // AZIONE PER TORNARE INDIETRO AL LOGIN SCREEN
         btnBackToLogin.setOnClickListener {
-            finish() // Chiude questa schermata e torna automaticamente alla MainActivity che l'aveva aperta
+            val intent = Intent(this, LoginScreenActivity::class.java)
+            startActivity(intent)
+            finish() // Chiude la registrazione così non rimane aperta nel background
         }
     }
 }

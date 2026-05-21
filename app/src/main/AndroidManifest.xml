@@ -19,13 +19,17 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".LoginScreenActivity" android:exported="false" />
+
         <activity android:name=".ChatHomepageActivity" android:exported="false" />
         <activity android:name=".signup_screen_activity" android:exported="false" />
         <activity android:name=".AddContactActivity" android:exported="false" />
+
         <activity
             android:name=".SingleChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
         <activity android:name=".AccountDetail" android:exported="false" />
 
     </application>

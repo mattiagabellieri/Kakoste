@@ -1,122 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://tools.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1D4682">
+    android:background="#1D4682"
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="#1D4682"
         android:orientation="vertical"
         android:padding="32dp">
 
         <ImageView
-            android:id="@+id/imgLogo"
+            android:id="@+id/imgLogoOmnitext"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_gravity="center"
             android:layout_marginBottom="16dp"
             android:contentDescription="Logo Omnitext"
-            android:scaleType="fitCenter"
             android:src="@drawable/logo_omnitext" />
 
         <TextView
-            android:id="@+id/txtTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/audiowide"
-            android:text="Omnitext"
-            android:textColor="#FFFFFF"
-            android:textSize="34sp" />
-
-        <TextView
-            android:id="@+id/txtSubtitle"
+            android:id="@+id/txtLoginTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="32dp"
-            android:text="Connettiti con il mondo"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
+            android:fontFamily="sans-serif-black"
+            android:text="BENVENUTO AD OMNITEXT"
+            android:textColor="#F6E5E5"
+            android:textSize="24sp"
+            android:textAlignment="center" />
 
-        <com.google.android.material.card.MaterialCardView
+        <Button
+            android:id="@+id/btnVaiALogin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="4dp"
-            app:cardUseCompatPadding="true">
+            android:layout_height="60dp"
+            android:backgroundTint="#FFD400"
+            android:text="ACCEDI"
+            android:textColor="#1D4682"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Username"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etUsername"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textPersonName" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="16dp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Password"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:passwordToggleEnabled="true">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPassword"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textPassword" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <Button
-                    android:id="@+id/btnLogin"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="24dp"
-                    android:backgroundTint="#1D4682"
-                    android:text="ACCEDI"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="12dp" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSignUp"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:text="Non hai un account? Registrati"
-            android:textAllCaps="false"
-            android:textColor="#FFD400" />
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:text="o"
+            android:textColor="#F6E5E5"
+            android:textSize="16sp"
+            android:textStyle="italic" />
+
+        <Button
+            android:id="@+id/btnSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:backgroundTint="#FFD400"
+            android:text="REGISTRATI"
+            android:textColor="#1D4682"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp" />
 
     </LinearLayout>
 </RelativeLayout>
