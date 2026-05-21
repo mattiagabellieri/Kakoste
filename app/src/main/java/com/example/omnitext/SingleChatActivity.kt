@@ -99,12 +99,51 @@ class SingleChatActivity : AppCompatActivity() {
         ascoltaMessaggiInTempoReale()
     }
 
+    // --- FUNZIONI DI SUPPORTO PER IL CIFRARIO DI CESARE ---
+    private val CHIAVE_CIFRARIO = 3
+
+    private fun cifraTesto(testo: String): String {
+        return testo.map { carattere ->
+            when {
+                carattere.isUpperCase() -> {
+                    ((carattere.code - 'A'.code + CHIAVE_CIFRARIO) % 26 + 'A'.code).toChar()
+                }
+                carattere.isLowerCase() -> {
+                    ((carattere.code - 'a'.code + CHIAVE_CIFRARIO) % 26 + 'a'.code).toChar()
+                }
+                else -> carattere // Mantiene inalterati spazi, numeri o punteggiatura
+            }
+        }.joinToString("")
+    }
+
+    private fun decifraTesto(testoCifrato: String): String {
+        return testoCifrato.map { carattere ->
+            when {
+                carattere.isUpperCase() -> {
+                    var nuovoCodice = (carattere.code - 'A'.code - CHIAVE_CIFRARIO) % 26
+                    if (nuovoCodice < 0) nuovoCodice += 26
+                    (nuovoCodice + 'A'.code).toChar()
+                }
+                carattere.isLowerCase() -> {
+                    var nuovoCodice = (carattere.code - 'a'.code - CHIAVE_CIFRARIO) % 26
+                    if (nuovoCodice < 0) nuovoCodice += 26
+                    (nuovoCodice + 'a'.code).toChar()
+                }
+                else -> carattere
+            }
+        }.joinToString("")
+    }
+    // -----------------------------------------------------
+
     private fun inviaMessaggioSuFirestore(testo: String) {
         val mioUid = auth.currentUser?.uid ?: return
 
+        // 1. CIFRIAMO IL TESTO prima di inviarlo a Firestore
+        val testoCifrato = cifraTesto(testo)
+
         val infoMessaggio = hashMapOf(
             "mittente" to mioUid,
-            "testo" to testo,
+            "testo" to testoCifrato, // Invia la stringa criptata
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -116,7 +155,7 @@ class SingleChatActivity : AppCompatActivity() {
                 val updateUltimoMsg = mapOf(
                     "messagges" to mapOf(
                         "mittente" to mioUid,
-                        "testo" to testo
+                        "testo" to testoCifrato // Mantiene criptata anche l'anteprima nel database
                     )
                 )
                 db.collection("ChatRooms").document(chatRoomId).update(updateUltimoMsg)
@@ -138,7 +177,14 @@ class SingleChatActivity : AppCompatActivity() {
 
                 messageList.clear()
                 snapshot?.documents?.forEach { doc ->
-                    doc.data?.let { messageList.add(it) }
+                    val data = doc.data?.toMutableMap() // Trasformiamo in mappa modificabile
+                    if (data != null) {
+                        val testoCriptatoSalvato = data["testo"]?.toString() ?: ""
+
+                        // 2. DECIFRIAMO IL TESTO per renderlo visibile nella RecyclerView dell'app
+                        data["testo"] = decifraTesto(testoCriptatoSalvato)
+                        messageList.add(data)
+                    }
                 }
 
                 if (::messageAdapter.isInitialized) {

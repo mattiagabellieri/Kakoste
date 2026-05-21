@@ -44,6 +44,28 @@ class ChatHomepageActivity : AppCompatActivity() {
         caricaChatDalloUsername()
     }
 
+    // --- FUNZIONE DI SUPPORTO PER IL CIFRARIO DI CESARE ---
+    private val CHIAVE_CIFRARIO = 3
+
+    private fun decifraTesto(testoCifrato: String): String {
+        return testoCifrato.map { carattere ->
+            when {
+                carattere.isUpperCase() -> {
+                    var nuovoCodice = (carattere.code - 'A'.code - CHIAVE_CIFRARIO) % 26
+                    if (nuovoCodice < 0) nuovoCodice += 26
+                    (nuovoCodice + 'A'.code).toChar()
+                }
+                carattere.isLowerCase() -> {
+                    var nuovoCodice = (carattere.code - 'a'.code - CHIAVE_CIFRARIO) % 26
+                    if (nuovoCodice < 0) nuovoCodice += 26
+                    (nuovoCodice + 'a'.code).toChar()
+                }
+                else -> carattere // Mantiene inalterati spazi, numeri o punteggiatura
+            }
+        }.joinToString("")
+    }
+    // -----------------------------------------------------
+
     private fun caricaChatDalloUsername() {
         val mioUid = auth.currentUser?.uid ?: return
 
@@ -58,11 +80,21 @@ class ChatHomepageActivity : AppCompatActivity() {
                     val altroUid = partecipanti?.find { it != mioUid } ?: ""
 
                     val lastMsgMap = doc.get("messagges") as? Map<String, Any>
-                    val testoLastMsg = lastMsgMap?.get("testo")?.toString() ?: "Nessun messaggio"
+                    val testoLastMsgCifrato = lastMsgMap?.get("testo")?.toString() ?: "Nessun messaggio"
+
+                    // DECIFRAZIONE DELL'ANTEPRIMA
+                    // Se c'è un messaggio reale lo decifriamo, altrimenti manteniamo la scritta standard "Nessun messaggio"
+                    val testoLastMsgDecifrato = if (testoLastMsgCifrato != "Nessun messaggio") {
+                        decifraTesto(testoLastMsgCifrato)
+                    } else {
+                        testoLastMsgCifrato
+                    }
 
                     db.collection("Utenti").document(altroUid).get().addOnSuccessListener { uDoc ->
                         val nome = uDoc.getString("Username") ?: "Utente"
-                        chatList.add(ChatModel(doc.id, testoLastMsg, altroUid, nome))
+
+                        // Passiamo il testo decifrato al modello della lista
+                        chatList.add(ChatModel(doc.id, testoLastMsgDecifrato, altroUid, nome))
                         adapter.notifyDataSetChanged()
                     }
                 }
