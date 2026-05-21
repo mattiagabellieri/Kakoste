@@ -32,13 +32,12 @@ class AddContactActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        // AGGIUNTA: Configura la Toolbar e attiva la freccia indietro
+        // Configura la Toolbar e attiva la freccia indietro
         val addContactToolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.addContactToolbar)
         setSupportActionBar(addContactToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(false) // Nasconde il titolo dell'app
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // Al click sulla freccia indietro, chiude l'attività e torna alla Home
         addContactToolbar.setNavigationOnClickListener {
             finish()
         }
@@ -59,49 +58,60 @@ class AddContactActivity : AppCompatActivity() {
     private fun cercaContattoEAvviaChat(phoneInput: String) {
         val mioUid = auth.currentUser?.uid ?: return
 
-        db.collection("Users")
-            .whereEqualTo("telefono", phoneInput)
+        // IMPORTANTE: Controlla sulla console Firebase se la collezione si chiama "Utenti" o "Users"
+        // e se il campo del telefono si chiama "Telefono", "phone" o "telefono".
+        db.collection("Utenti") // <-- Sostituito "Users" con "Utenti" (allineato con il resto del progetto)
+            .whereEqualTo("Telefono", phoneInput) // <-- Spesso salvato con la T maiuscola nel SignUp
             .get()
             .addOnSuccessListener { snapshot ->
-                if (snapshot.isEmpty) {
+                if (snapshot == null || snapshot.isEmpty) {
                     Toast.makeText(this, "Contatto non trovato", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
-                val altroUid = snapshot.documents[0].id
+                val uDoc = snapshot.documents[0]
+                val altroUid = uDoc.id
+
+                // Recuperiamo lo Username dell'altro utente per passarlo alla schermata di chat
+                val nomeAltroUtente = uDoc.getString("Username") ?: "Utente"
+
                 if (altroUid == mioUid) {
                     Toast.makeText(this, "Non puoi aggiungere te stesso", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
-                creaStanzaChat(mioUid, altroUid)
+                creaStanzaChat(mioUid, altroUid, nomeAltroUtente)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Errore nella ricerca", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun creaStanzaChat(mioUid: String, altroUid: String) {
+    private fun creaStanzaChat(mioUid: String, altroUid: String, nomeAltroUtente: String) {
+        // Ordiniamo gli UID e creiamo l'ID unendoli con l'underscore '_' anziché con la virgola
         val list = listOf(mioUid, altroUid).sorted()
-        val chatRoomId = "${list[0]}, ${list[1]}"
+        val chatRoomId = "${list[0]}_${list[1]}"
 
         val chatData = hashMapOf(
             "Partecipanti" to list,
+            "timestampOrdinamento" to System.currentTimeMillis(), // Utile per ordinare le chat in Home
             "messagges" to hashMapOf(
                 "testo" to "Inizia a chattare!",
-                "mittenteID" to "",
-                "ora" to 0,
-                "minuto" to 0,
-                "giorno" to 0,
-                "mese" to 0,
-                "anno" to 0
+                "mittente" to ""
             )
         )
 
         db.collection("ChatRooms").document(chatRoomId)
-            .set(chatData)
+            .set(chatData, com.google.firebase.firestore.SetOptions.merge())
             .addOnSuccessListener {
                 Toast.makeText(this, "Chat avviata!", Toast.LENGTH_SHORT).show()
+
+                // Novità: Apriamo direttamente la chat appena creata passando i dati corretti
+                val intent = Intent(this, SingleChatActivity::class.java).apply {
+                    putExtra("CHAT_ID", chatRoomId)
+                    putExtra("OTHER_USER_NAME", nomeAltroUtente)
+                }
+                startActivity(intent)
                 finish()
             }
             .addOnFailureListener {

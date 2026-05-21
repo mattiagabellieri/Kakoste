@@ -80,7 +80,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="Password">
+                    android:hint="Password"
+                    app:passwordToggleEnabled="true"
+                    app:passwordToggleTint="#1D4682">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etNewPassword"
@@ -94,7 +96,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="Conferma Password">
+                    android:hint="Conferma Password"
+                    app:passwordToggleEnabled="true"
+                    app:passwordToggleTint="#1D4682">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etConfirmPassword"
