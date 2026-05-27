@@ -80,7 +80,35 @@ class SingleChatActivity : AppCompatActivity() {
             }
         }
 
+        // Recupera il nome corretto della stanza (Gestione Gruppo / Singola)
+        recuperaDatiStanzaChat()
+
         ascoltaMessaggiInTempoReale()
+    }
+
+    private fun recuperaDatiStanzaChat() {
+        if (chatRoomId.isEmpty()) return
+
+        db.collection("ChatRooms").document(chatRoomId).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val isGruppo = document.getBoolean("isGruppo") ?: false
+                    if (isGruppo) {
+                        // Se è un gruppo, estrae il nome corretto del gruppo da Firestore
+                        val nomeGruppo = document.getString("NomeGruppo")
+                        if (!nomeGruppo.isNullOrEmpty()) {
+                            findViewById<TextView>(R.id.tvChatUserTitle).text = nomeGruppo
+                        }
+
+                        // --- MODIFICA ADAPTER: Diciamo all'adapter che è un gruppo ---
+                        if (::messageAdapter.isInitialized) {
+                            messageAdapter.isGruppo = true
+                            messageAdapter.notifyDataSetChanged()
+                        }
+                        // -------------------------------------------------------------
+                    }
+                }
+            }
     }
 
     private fun applicaTemaDinamico() {

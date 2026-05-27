@@ -9,16 +9,22 @@ import android.widget.TextView
 import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.example.omnitext.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MessageAdapter(private val messageList: List<Map<String, Any>>) :
-    RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
+class MessageAdapter(
+    private val messageList: List<Map<String, Any>>,
+    var isGruppo: Boolean = false // <-- Aggiunto per gestire i gruppi
+) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
     private val mioUid: String
         get() = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    private val db = FirebaseFirestore.getInstance()
+    private val nomiUtentiCache = mutableMapOf<String, String>() // Cache per evitare letture continue
 
     class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val layoutReceived: LinearLayout = view.findViewById(R.id.layoutReceived)
@@ -28,6 +34,10 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
         val tvReceivedTime: TextView = view.findViewById(R.id.tvReceivedTime)
         val tvSentTime: TextView = view.findViewById(R.id.tvSentTime)
         val tvMessageDate: TextView = view.findViewById(R.id.tvMessageDate)
+
+        // Assicurati che nel tuo layout XML item_message, all'interno del layoutReceived,
+        // ci sia un TextView per il nome del mittente con questo ID (o cambialo con il tuo ID reale)
+        val tvReceivedSenderName: TextView? = view.findViewById(R.id.tvReceivedSenderName)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
@@ -82,7 +92,6 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
             holder.tvSentMessage.text = testo
             holder.tvSentTime.text = orarioFormattato
 
-            // Applica la tinta allo sfondo drawable del fumetto e imposta il testo
             holder.layoutSent.background?.setTint(colInviati)
             holder.tvSentMessage.setTextColor(colTestoInviati)
             holder.tvSentTime.setTextColor(colTestoInviati)
@@ -92,10 +101,33 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
             holder.tvReceivedMessage.text = testo
             holder.tvReceivedTime.text = orarioFormattato
 
-            // Applica la tinta allo sfondo drawable del fumetto e imposta il testo
             holder.layoutReceived.background?.setTint(colRicevuti)
             holder.tvReceivedMessage.setTextColor(colTestoRicevuti)
             holder.tvReceivedTime.setTextColor(colTestoRicevuti)
+
+            // --- GESTIONE NOME MITTENTE NEI GRUPPI ---
+            if (holder.tvReceivedSenderName != null) {
+                if (isGruppo && mittente.isNotEmpty()) {
+                    holder.tvReceivedSenderName.visibility = View.VISIBLE
+
+                    // Controlla il colore del testo coordinato (puoi anche metterlo ad esempio del colore degli inviati o un colore secondario per risaltare)
+                    holder.tvReceivedSenderName.setTextColor(colInviati)
+
+                    if (nomiUtentiCache.containsKey(mittente)) {
+                        holder.tvReceivedSenderName.text = nomiUtentiCache[mittente]
+                    } else {
+                        holder.tvReceivedSenderName.text = "..."
+                        db.collection("Utenti").document(mittente).get()
+                            .addOnSuccessListener { doc ->
+                                val username = doc.getString("Username") ?: "Utente"
+                                nomiUtentiCache[mittente] = username
+                                holder.tvReceivedSenderName.text = username
+                            }
+                    }
+                } else {
+                    holder.tvReceivedSenderName.visibility = View.GONE
+                }
+            }
         }
     }
 

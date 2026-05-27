@@ -70,9 +70,6 @@ class ChatHomepageActivity : AppCompatActivity() {
             colorFilter = android.graphics.PorterDuffColorFilter(colSfondo, android.graphics.PorterDuff.Mode.SRC_IN)
         }
 
-        // Logo tinted con le scritte (opzionale, rimane visibile)
-        // Non tocchiamo l'ImageView del logo per non alterare il branding
-
         if (::adapter.isInitialized) {
             adapter.notifyDataSetChanged()
         }
@@ -108,10 +105,21 @@ class ChatHomepageActivity : AppCompatActivity() {
                         testoLastMsgCifrato
                     }
 
-                    db.collection("Utenti").document(altroUid).get().addOnSuccessListener { uDoc ->
-                        val nome = uDoc.getString("Username") ?: "Utente"
-                        chatList.add(ChatModel(doc.id, testoLastMsgDecifrato, altroUid, nome))
+                    // CONTROLLO GRUPPO: Controlliamo se la stanza è un gruppo
+                    val isGruppo = doc.getBoolean("isGruppo") ?: false
+
+                    if (isGruppo) {
+                        // Se è un gruppo, prendiamo direttamente il nome salvato nella ChatRoom
+                        val nomeGruppo = doc.getString("NomeGruppo") ?: "Gruppo"
+                        chatList.add(ChatModel(doc.id, testoLastMsgDecifrato, altroUid, nomeGruppo))
                         adapter.notifyDataSetChanged()
+                    } else {
+                        // Se è una chat singola, facciamo la query al database utenti come prima
+                        db.collection("Utenti").document(altroUid).get().addOnSuccessListener { uDoc ->
+                            val nome = uDoc.getString("Username") ?: "Utente"
+                            chatList.add(ChatModel(doc.id, testoLastMsgDecifrato, altroUid, nome))
+                            adapter.notifyDataSetChanged()
+                        }
                     }
                 }
             }
