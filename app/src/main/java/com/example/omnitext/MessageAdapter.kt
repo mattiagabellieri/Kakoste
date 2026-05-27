@@ -1,10 +1,12 @@
 package com.example.omnitext
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.example.omnitext.R
@@ -15,7 +17,6 @@ import java.util.Locale
 class MessageAdapter(private val messageList: List<Map<String, Any>>) :
     RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
-    // Ottiene l'UID dinamicamente ogni volta che serve, evitando stringhe vuote
     private val mioUid: String
         get() = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
@@ -24,11 +25,8 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
         val layoutSent: LinearLayout = view.findViewById(R.id.layoutSent)
         val tvReceivedMessage: TextView = view.findViewById(R.id.tvReceivedMessage)
         val tvSentMessage: TextView = view.findViewById(R.id.tvSentMessage)
-
         val tvReceivedTime: TextView = view.findViewById(R.id.tvReceivedTime)
         val tvSentTime: TextView = view.findViewById(R.id.tvSentTime)
-
-        // NUOVO RIFERIMENTI PER LA DATA IN CIMA
         val tvMessageDate: TextView = view.findViewById(R.id.tvMessageDate)
     }
 
@@ -38,68 +36,71 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        val message = messageList[position]
+        val currentMessage = messageList[position]
+        val testo = currentMessage["testo"]?.toString() ?: ""
+        val mittente = currentMessage["mittente"]?.toString() ?: ""
+        val timestamp = currentMessage["timestamp"] as? Long ?: 0L
 
-        val testo = message["testo"]?.toString()?.trim() ?: ""
-        val mittente = message["mittente"]?.toString()?.trim() ?: ""
         val mioUidPulito = mioUid.trim()
 
-        // 1. FORMATTAZIONE DELL'ORARIO (es. "15:30")
-        val timestamp = message["timestamp"] as? Long
-        val orarioFormattato = if (timestamp != null) {
+        val orarioFormattato = if (timestamp != 0L) {
             SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
         } else {
             ""
         }
 
-        // 2. GESTIONE DELLA DATA CENTRATA STILE WHATSAPP
-        if (timestamp != null) {
-            val dataCorrente = formattaDataElegante(timestamp)
+        if (position > 0) {
+            val messaggioPrecedente = messageList[position - 1]
+            val timestampPrecedente = messaggioPrecedente["timestamp"] as? Long ?: 0L
 
-            // Se è il primo messaggio, mostra sempre la data.
-            // Altrimenti confrontalo con il messaggio precedente: se la data cambia, mostrala.
-            if (position == 0) {
-                holder.tvMessageDate.visibility = View.VISIBLE
-                holder.tvMessageDate.text = dataCorrente
+            val dataCorrente = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date(timestamp))
+            val dataPrecedente = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date(timestampPrecedente))
+
+            if (dataCorrente == dataPrecedente) {
+                holder.tvMessageDate.visibility = View.GONE
             } else {
-                val messaggioPrecedente = messageList[position - 1]
-                val timestampPrecedente = messaggioPrecedente["timestamp"] as? Long
-
-                if (timestampPrecedente != null) {
-                    val dataPrecedente = formattaDataElegante(timestampPrecedente)
-                    if (dataCorrente != dataPrecedente) {
-                        holder.tvMessageDate.visibility = View.VISIBLE
-                        holder.tvMessageDate.text = dataCorrente
-                    } else {
-                        holder.tvMessageDate.visibility = View.GONE
-                    }
-                } else {
-                    holder.tvMessageDate.visibility = View.GONE
-                }
+                holder.tvMessageDate.visibility = View.VISIBLE
+                holder.tvMessageDate.text = formattaDataElegante(timestamp)
             }
         } else {
-            holder.tvMessageDate.visibility = View.GONE
+            holder.tvMessageDate.visibility = View.VISIBLE
+            holder.tvMessageDate.text = formattaDataElegante(timestamp)
         }
 
-        // 3. LOGICA DI VISUALIZZAZIONE DELLE BOLLE
+        // --- APPLICAZIONE DINAMICA DEL TEMA SCELTO ---
+        val context = holder.itemView.context
+        val prefs = context.getSharedPreferences("ImpostazioniTema", Context.MODE_PRIVATE)
+
+        val colInviati = prefs.getInt("color_inviati", "#1A3B6D".toColorInt())
+        val colTestoInviati = prefs.getInt("color_testo_inviati", android.graphics.Color.WHITE)
+        val colRicevuti = prefs.getInt("color_ricevuti", "#E0E0E0".toColorInt())
+        val colTestoRicevuti = prefs.getInt("color_testo_ricevuti", android.graphics.Color.BLACK)
+
         if (mittente.isNotEmpty() && mittente == mioUidPulito) {
-            // Messaggio inviato da me -> Mostra a destra, nascondi a sinistra
             holder.layoutSent.visibility = View.VISIBLE
             holder.layoutReceived.visibility = View.GONE
             holder.tvSentMessage.text = testo
             holder.tvSentTime.text = orarioFormattato
+
+            // Applica la tinta allo sfondo drawable del fumetto e imposta il testo
+            holder.layoutSent.background?.setTint(colInviati)
+            holder.tvSentMessage.setTextColor(colTestoInviati)
+            holder.tvSentTime.setTextColor(colTestoInviati)
         } else {
-            // Messaggio ricevuto dall'altro -> Mostra a sinistra, nascondi a destra
             holder.layoutReceived.visibility = View.VISIBLE
             holder.layoutSent.visibility = View.GONE
             holder.tvReceivedMessage.text = testo
             holder.tvReceivedTime.text = orarioFormattato
+
+            // Applica la tinta allo sfondo drawable del fumetto e imposta il testo
+            holder.layoutReceived.background?.setTint(colRicevuti)
+            holder.tvReceivedMessage.setTextColor(colTestoRicevuti)
+            holder.tvReceivedTime.setTextColor(colTestoRicevuti)
         }
     }
 
     override fun getItemCount() = messageList.size
 
-    // Funzione di supporto per convertire il timestamp in "Oggi", "Ieri" o nella data completa (es. "24 maggio")
     private fun formattaDataElegante(timestamp: Long): String {
         val formatoGiorno = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
         val oggi = formatoGiorno.format(Date())
@@ -108,7 +109,7 @@ class MessageAdapter(private val messageList: List<Map<String, Any>>) :
         return when (giornoMessaggio) {
             oggi -> "Oggi"
             formatoGiorno.format(Date(System.currentTimeMillis() - 86400000)) -> "Ieri"
-            else -> SimpleDateFormat("d MMMM yyyy", Locale.ITALIAN).format(Date(timestamp))
+            else -> SimpleDateFormat("dd MMMM", Locale.getDefault()).format(Date(timestamp))
         }
     }
 }

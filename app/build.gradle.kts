@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
 
+    // SISTEMATO: Adesso usa la corretta sintassi Kotlin DSL
+    implementation("com.github.yukuku:ambilwarna:2.0.1")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,5 +1,7 @@
 package com.example.omnitext
 
+import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.ImageButton
@@ -7,10 +9,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -30,132 +34,122 @@ class SingleChatActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_single_chat)
 
-        // VISTA PRINCIPALE PER IL CONTROLLO DELLA TASTIERA
         val mainView = findViewById<android.view.View>(R.id.mainChatLayout)
 
-        // CORREZIONE EDGE-TO-EDGE + COMPORTAMENTO TASTIERA (IME)
         ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeBars = insets.getInsets(WindowInsetsCompat.Type.ime()) // Gestisce la tastiera
-
-            // Se la tastiera è aperta usa il suo ingombro, altrimenti usa la barra di sistema in basso
-            val bottomPadding = if (imeBars.bottom > 0) imeBars.bottom else systemBars.bottom
-
-            // Impostiamo il padding dinamico alla vista principale
-            v.setPadding(0, systemBars.top, 0, bottomPadding)
-            insets
+            v.setPadding(
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                if (imeInsets.bottom > 0) imeInsets.bottom else systemBars.bottom
+            )
+            WindowInsetsCompat.CONSUMED
         }
 
-        // 1. Recuperiamo i dati passati dall'Adapter delle Chat
-        chatRoomId = intent.getStringExtra("CHAT_ID") ?: ""
-        otherUserName = intent.getStringExtra("OTHER_USER_NAME") ?: "Chat"
+        chatRoomId = intent.getStringArrayExtra("CHAT_ID")?.joinToString(",")
+            ?: intent.getStringExtra("CHAT_ID")
+                    ?: ""
+        otherUserName = intent.getStringExtra("OTHER_USER_NAME") ?: "Utente"
 
-        // 2. Colleghiamo i componenti dell'XML
-        val chatToolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.chatToolbar)
         val tvChatUserTitle = findViewById<TextView>(R.id.tvChatUserTitle)
-        val etMessage = findViewById<EditText>(R.id.etMessage)
-        val btnSendMessage = findViewById<ImageButton>(R.id.btnSendMessage)
-        val rvMessages = findViewById<RecyclerView>(R.id.rvMessages)
-
-        // Configura il tasto "Indietro" nella Toolbar
-        setSupportActionBar(chatToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-
-        chatToolbar.setNavigationOnClickListener {
-            finish()
-        }
-
         tvChatUserTitle.text = otherUserName
 
-        // 3. Configura la RecyclerView dei messaggi
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.chatToolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false) // nasconde "Omnitext" di default
+        toolbar.setNavigationOnClickListener { finish() }
+
+        val rvMessages = findViewById<RecyclerView>(R.id.rvMessages)
+        rvMessages.layoutManager = LinearLayoutManager(this)
         messageAdapter = MessageAdapter(messageList)
-        val layoutManager = LinearLayoutManager(this).apply {
-            stackFromEnd = true // Mantiene i messaggi ancorati al fondo
-        }
-        rvMessages.layoutManager = layoutManager
         rvMessages.adapter = messageAdapter
 
-        // SCROLL AUTOMATICO QUANDO IL LAYOUT SI STRINGE (Apertura della tastiera)
-        rvMessages.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-            if (bottom < oldBottom) {
-                if (messageList.isNotEmpty()) {
-                    rvMessages.postDelayed({
-                        rvMessages.smoothScrollToPosition(messageList.size - 1)
-                    }, 100)
-                }
-            }
-        }
+        applicaTemaDinamico()
 
-        // 4. Gestione del tasto INVIA messaggio
+        val etMessage = findViewById<EditText>(R.id.etMessage)
+        val btnSendMessage = findViewById<ImageButton>(R.id.btnSendMessage)
+
         btnSendMessage.setOnClickListener {
-            val testoMessaggio = etMessage.text.toString().trim()
-            if (testoMessaggio.isNotEmpty()) {
-                inviaMessaggioSuFirestore(testoMessaggio)
-                etMessage.setText("")
+            val testo = etMessage.text.toString().trim()
+            if (testo.isNotEmpty()) {
+                inviaMessaggioSuFirestore(testo)
+                etMessage.text.clear()
             }
         }
 
         ascoltaMessaggiInTempoReale()
     }
 
-    // --- FUNZIONI DI SUPPORTO PER IL CIFRARIO DI CESARE ---
-    private val CHIAVE_CIFRARIO = 3
+    private fun applicaTemaDinamico() {
+        val prefs = getSharedPreferences("ImpostazioniTema", Context.MODE_PRIVATE)
+        val colSfondoApp = prefs.getInt("color_sfondo", "#1D4682".toColorInt())
+        val colScritte = prefs.getInt("color_scritte", Color.WHITE)
+        val colInviati = prefs.getInt("color_inviati", "#FFD400".toColorInt())
 
-    private fun cifraTesto(testo: String): String {
-        return testo.map { carattere ->
-            when {
-                carattere.isUpperCase() -> {
-                    ((carattere.code - 'A'.code + CHIAVE_CIFRARIO) % 26 + 'A'.code).toChar()
-                }
-                carattere.isLowerCase() -> {
-                    ((carattere.code - 'a'.code + CHIAVE_CIFRARIO) % 26 + 'a'.code).toChar()
-                }
-                else -> carattere // Mantiene inalterati spazi, numeri o punteggiatura
-            }
-        }.joinToString("")
+        // 1. Sfondo globale
+        findViewById<android.view.View>(R.id.mainChatLayout)?.setBackgroundColor(colSfondoApp)
+
+        // 2. Toolbar: sfondo + freccia indietro + titolo utente
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.chatToolbar)
+        toolbar?.setBackgroundColor(colSfondoApp)
+        toolbar?.navigationIcon?.setTint(colScritte)
+
+        val tvChatUserTitle = findViewById<TextView>(R.id.tvChatUserTitle)
+        tvChatUserTitle?.setTextColor(colScritte)
+
+        // 3. Pulsante invia: usa colore inviati per risaltare
+        val btnSendMessage = findViewById<ImageButton>(R.id.btnSendMessage)
+        btnSendMessage?.setColorFilter(colInviati)
+
+        // 4. Campo testo: colore sfondo come testo (sarà su card chiara) + hint coordinato
+        val etMessage = findViewById<EditText>(R.id.etMessage)
+        etMessage?.setTextColor(colSfondoApp)
+        etMessage?.setHintTextColor(Color.argb(150,
+            Color.red(colSfondoApp), Color.green(colSfondoApp), Color.blue(colSfondoApp)))
+
+        // 5. InputCard (MaterialCardView contenitore della barra di testo):
+        //    sfondo bianco semi-trasparente coordinato, bordo del colore inviati
+        val inputCard = findViewById<MaterialCardView>(R.id.inputCard)
+        inputCard?.apply {
+            setCardBackgroundColor(Color.WHITE)
+            strokeColor = colInviati
+            strokeWidth = 2
+        }
+    }
+
+    private fun cifraTesto(testoChiaro: String): String {
+        return testoChiaro.map { (it.code + 3).toChar() }.joinToString("")
     }
 
     private fun decifraTesto(testoCifrato: String): String {
-        return testoCifrato.map { carattere ->
-            when {
-                carattere.isUpperCase() -> {
-                    var nuovoCodice = (carattere.code - 'A'.code - CHIAVE_CIFRARIO) % 26
-                    if (nuovoCodice < 0) nuovoCodice += 26
-                    (nuovoCodice + 'A'.code).toChar()
-                }
-                carattere.isLowerCase() -> {
-                    var nuovoCodice = (carattere.code - 'a'.code - CHIAVE_CIFRARIO) % 26
-                    if (nuovoCodice < 0) nuovoCodice += 26
-                    (nuovoCodice + 'a'.code).toChar()
-                }
-                else -> carattere
-            }
-        }.joinToString("")
+        return testoCifrato.map { (it.code - 3).toChar() }.joinToString("")
     }
-    // -----------------------------------------------------
 
-    private fun inviaMessaggioSuFirestore(testo: String) {
+    private fun inviaMessaggioSuFirestore(testoChiaro: String) {
+        if (chatRoomId.isEmpty()) return
+
         val mioUid = auth.currentUser?.uid ?: return
+        val testoCriptato = cifraTesto(testoChiaro)
 
-        // 1. CIFRIAMO IL TESTO prima di inviarlo a Firestore
-        val testoCifrato = cifraTesto(testo)
-
-        val infoMessaggio = hashMapOf(
+        val messageData = hashMapOf(
+            "testo" to testoCriptato,
             "mittente" to mioUid,
-            "testo" to testoCifrato, // Invia la stringa criptata
             "timestamp" to System.currentTimeMillis()
         )
 
         db.collection("ChatRooms")
             .document(chatRoomId)
             .collection("Messages")
-            .add(infoMessaggio)
+            .add(messageData)
             .addOnSuccessListener {
-                val updateUltimoMsg = mapOf(
-                    "messagges" to mapOf(
-                        "mittente" to mioUid,
-                        "testo" to testoCifrato // Mantiene criptata anche l'anteprima nel database
+                val updateUltimoMsg = hashMapOf<String, Any>(
+                    "timestampOrdinamento" to System.currentTimeMillis(),
+                    "messagges" to hashMapOf(
+                        "testo" to testoCriptato,
+                        "mittente" to mioUid
                     )
                 )
                 db.collection("ChatRooms").document(chatRoomId).update(updateUltimoMsg)
@@ -177,11 +171,9 @@ class SingleChatActivity : AppCompatActivity() {
 
                 messageList.clear()
                 snapshot?.documents?.forEach { doc ->
-                    val data = doc.data?.toMutableMap() // Trasformiamo in mappa modificabile
+                    val data = doc.data?.toMutableMap()
                     if (data != null) {
                         val testoCriptatoSalvato = data["testo"]?.toString() ?: ""
-
-                        // 2. DECIFRIAMO IL TESTO per renderlo visibile nella RecyclerView dell'app
                         data["testo"] = decifraTesto(testoCriptatoSalvato)
                         messageList.add(data)
                     }
